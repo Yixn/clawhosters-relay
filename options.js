@@ -1,4 +1,4 @@
-import { deriveRelayToken, buildPreflightUrl } from './background-utils.js'
+import { buildPreflightUrl } from './background-utils.js'
 import { classifyRelayCheckException, classifyRelayCheckResponse } from './options-validation.js'
 
 const DEFAULT_PORT = 18792
@@ -63,13 +63,11 @@ async function checkRelayReachable(settings) {
 
   try {
     const checkUrl = buildPreflightUrl(settings)
-    // For HMAC derivation: remote always uses 18792, local uses configured port
-    const hmacPort = settings.connectionMode === 'remote' ? 18792 : settings.port
-    const relayToken = await deriveRelayToken(trimmedToken, hmacPort)
+    // Relay validates the raw gateway token, not an HMAC derivative
     const res = await chrome.runtime.sendMessage({
       type: 'relayCheck',
       url: checkUrl,
-      token: relayToken,
+      token: trimmedToken,
     })
     const result = classifyRelayCheckResponse(res, settings)
     if (result.action === 'throw') throw new Error(result.error)

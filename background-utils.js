@@ -61,12 +61,11 @@ export async function buildRelayWsUrl(settings) {
       throw new Error(`Invalid remote URL: ${url}`);
     }
     const host = parsed.host;
-    // Remote mode ALWAYS uses port 18792 for HMAC derivation
-    const relayToken = await deriveRelayToken(token, 18792);
-    return `wss://${host}/browser-relay/extension?token=${encodeURIComponent(relayToken)}`;
+    // Relay validates the raw gateway token
+    return `wss://${host}/browser-relay/extension?token=${encodeURIComponent(token)}`;
   }
 
-  // Local mode (original behavior)
+  // Local mode - uses HMAC-derived token (original OpenClaw extension behavior)
   const port = settings.port || 18792;
   const relayToken = await deriveRelayToken(token, port);
   return `ws://127.0.0.1:${port}/extension?token=${encodeURIComponent(relayToken)}`;
